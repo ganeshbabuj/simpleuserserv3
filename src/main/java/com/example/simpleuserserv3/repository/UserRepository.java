@@ -13,6 +13,8 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, L
 
     boolean existsByUsername(String username);
 
+    //Page<UserEntity> findByFirstNameAndLastName(String firstName, String lastName, Pageable pageable);
+
     Page<UserEntity> findByFirstName(String firstName, Pageable pageable);
 
 

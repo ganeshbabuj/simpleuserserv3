@@ -1,5 +1,8 @@
 package com.example.simpleuserserv3.service.impl;
 
+import com.example.simpleuserserv3.client.ActivationRequest;
+import com.example.simpleuserserv3.client.ActivationResponse;
+import com.example.simpleuserserv3.client.AdServClient;
 import com.example.simpleuserserv3.entity.AddressEntity;
 import com.example.simpleuserserv3.entity.GroupEntity;
 import com.example.simpleuserserv3.entity.UserEntity;
@@ -32,11 +35,14 @@ public class UserServiceImpl implements UserService {
 
     private GroupRepository groupRepository;
 
+    private AdServClient adServClient;
+
     private ModelMapper modelMapper;
 
-    public UserServiceImpl(UserRepository userRepository, GroupRepository groupRepository, ModelMapper modelMapper) {
+    public UserServiceImpl(UserRepository userRepository, GroupRepository groupRepository, AdServClient adServClient, ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
+        this.adServClient = adServClient;
         this.modelMapper = modelMapper;
     }
 
@@ -44,6 +50,7 @@ public class UserServiceImpl implements UserService {
     //TODO: Encrypt password in production application
     //TODO: Try functional style
     public User createUser(User user) {
+
 
         User savedUser = null;
         if (!userRepository.existsByUsername(user.getUsername())) {
@@ -71,6 +78,14 @@ public class UserServiceImpl implements UserService {
             UserEntity savedUserEntity = userRepository.save(userEntity);
             savedUser = modelMapper.map(savedUserEntity, User.class);
             System.out.println("Saved User: " + savedUserEntity);
+
+            try {
+                ActivationResponse activationResponse = adServClient.activate(new ActivationRequest(savedUser.getId()));
+                System.out.println(activationResponse);
+                savedUser.setMarketing(activationResponse);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
         } else {
             throw new ServiceException("Username already exists", HttpStatus.BAD_REQUEST);
